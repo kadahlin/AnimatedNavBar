@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/action_search"
+          android:title="One"
+          android:icon="@drawable/android_robot" />
+    <item android:id="@+id/action_settings"
+          android:title="Two"
+          android:icon="@drawable/android_robot" />
+    <item android:id="@+id/action_two"
+          android:title="Three"
+          android:icon="@drawable/android_robot" />
+    <!--<item android:id="@+id/action_four"-->
+          <!--android:title="Four"-->
+          <!--android:icon="@drawable/android_robot" />-->
+</menu>
