@@ -10,6 +10,8 @@ import android.util.Log
 import android.util.TypedValue
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet as CS
@@ -19,7 +21,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
 
     companion object {
-        private const val ANIMATION_DURATION = 700L
+        private const val ANIMATION_DURATION = 600L
         private const val MAX_ALPHA = .2f
     }
 
@@ -56,10 +58,8 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     private val mImageAnimators = mutableListOf<AnimatorContainer?>()
     private val ALPHA_DURATION: Long
 
-    private val mCircleY: Float = 0f
     private var mCircleAnimator: AnimatorContainer? = null
     private val mCircleContainer: CircleContainer
-    private val mInsetRect = Rect()
     private var mNavBarHeightGap = 0f
 
     init {
@@ -87,8 +87,8 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
             Pair(R.drawable.android_robot, 1),
             Pair(R.drawable.android_robot, 2),
             Pair(R.drawable.android_robot, 3),
-            Pair(R.drawable.android_robot, 4),
-            Pair(R.drawable.android_robot, 5)
+            Pair(R.drawable.android_robot, 4)
+//            Pair(R.drawable.android_robot, 5)
         )
 
         drawableToIds.forEachIndexed { index, pair ->
@@ -123,11 +123,9 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
             mImageViews.forEachIndexed { index, img ->
                 val startMargin =
                     (index * (mWidth / mImageViews.size) + (mWidth / mImageViews.size / 2)).toInt() - img.width / 2
-                constrainHeight(img.id, 46.toPx())
-                constrainWidth(img.id, 54.toPx())
                 connect(img.id, CS.START, CS.PARENT_ID, CS.START, startMargin)
                 connect(img.id, CS.TOP, CS.PARENT_ID, CS.TOP, mNavBarHeightGap.toInt())
-                connect(img.id, CS.BOTTOM, CS.PARENT_ID, CS.BOTTOM, 0)
+                connect(img.id, CS.BOTTOM, CS.PARENT_ID, CS.BOTTOM)
             }
             constrainWidth(mCircleContainer.id, curveRadius * 2)
             constrainHeight(mCircleContainer.id, curveRadius * 2)
@@ -163,12 +161,12 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         Log.d("Kyle", "onSizeChanged")
         mWidth = w.toFloat()
         mHeight = h.toFloat()
-        mNavBarHeightGap = curveRadius.toFloat()
-        mItemCenter = getCenterForIndex(mSelectedIndex) //TODO: change to get itemCenter from currentIndex
+        mNavBarHeightGap = mHeight - 56.toPx()
+        mItemCenter = getCenterForIndex(mSelectedIndex)
         for (imageChild in mImageViews) {
             val params = imageChild.layoutParams as ConstraintLayout.LayoutParams
-            params.width = mWidth.toInt() / 3 / 2
-            params.height = mHeight.toInt() * (2 / 3)
+            params.width = 48.toPx()
+            params.height = 40.toPx()
             imageChild.layoutParams = params
             imageChild.setPadding(12.toPx(), 8.toPx(), 12.toPx(), 8.toPx())
         }
@@ -186,21 +184,21 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
 
         // the coordinates (x,y)  of the 1st control point on a cubic curve
         mFirstCurveControlPoint1.set(
-            mFirstCurveStartPoint.x + curveRadius + (curveRadius / 4),
+            mFirstCurveStartPoint.x + curveRadius,
             mFirstCurveStartPoint.y
         )
         // the coordinates (x,y)  of the 2nd control point on a cubic curve
         mFirstCurveControlPoint2.set(
-            mFirstCurveEndPoint.x - (curveRadius * 2) + curveRadius,
+            mFirstCurveEndPoint.x - (curveRadius * 2) + curveRadius / 2,
             mFirstCurveEndPoint.y
         )
 
         mSecondCurveControlPoint1.set(
-            mSecondCurveStartPoint.x + (curveRadius * 2) - curveRadius,
+            mSecondCurveStartPoint.x + (curveRadius * 2) - curveRadius / 2,
             mSecondCurveStartPoint.y
         )
         mSecondCurveControlPoint2.set(
-            mSecondCurveEndPoint.x - (curveRadius + (curveRadius / 4)),
+            mSecondCurveEndPoint.x - curveRadius,
             mSecondCurveEndPoint.y
         )
 
@@ -231,7 +229,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         mAnimator?.cancel()
         mAnimator = ValueAnimator.ofFloat(mItemCenter, targetCenter)
         mAnimator?.duration = ANIMATION_DURATION
-        mAnimator?.interpolator = AccelerateDecelerateInterpolator()
+        mAnimator?.interpolator = DecelerateInterpolator()
         mAnimator?.addUpdateListener { animation ->
             val value = animation.animatedValue as Float
             mItemCenter = value
@@ -249,6 +247,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         mCircleAnimator?.getAnimator()?.cancel()
         val newCircleAnimator = ValueAnimator.ofFloat(mCircleContainer.y, mHeight)
         newCircleAnimator.duration = ANIMATION_DURATION / 4
+        newCircleAnimator.interpolator = AccelerateInterpolator()
         newCircleAnimator.addUpdateListener {
             val params = mCircleContainer.layoutParams as ConstraintLayout.LayoutParams
             params.topMargin = (it.animatedValue as Float).toInt()
@@ -266,6 +265,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
             mCircleAnimator?.getAnimator()?.cancel()
             val newCircleAnimator = ValueAnimator.ofFloat(mCircleContainer.y, 0f)
             newCircleAnimator?.duration = ANIMATION_DURATION / 4
+            newCircleAnimator.interpolator = DecelerateInterpolator()
             newCircleAnimator?.addUpdateListener {
                 val params = mCircleContainer.layoutParams as ConstraintLayout.LayoutParams
                 params.topMargin = (it.animatedValue as Float).toInt()
@@ -285,6 +285,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
             if (itemCenterCollidesWith(imageView)) {
                 if (mImageAnimators[index] == null) {
                     val alphaOutAnimation = ObjectAnimator.ofFloat(imageView, "alpha", imageView.alpha, 0f)
+                    alphaOutAnimation.interpolator = AccelerateInterpolator()
                     alphaOutAnimation.duration = ALPHA_DURATION
                     alphaOutAnimation.start()
                     mImageAnimators[index] = AlphaOutAnimator(alphaOutAnimation)
@@ -293,6 +294,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
                 mImageAnimators[index]?.getAnimator()?.cancel()
                 val alphaInAnimation = ObjectAnimator.ofFloat(imageView, "alpha", imageView.alpha, MAX_ALPHA)
                 alphaInAnimation.duration = ALPHA_DURATION
+                alphaInAnimation.interpolator = DecelerateInterpolator()
                 alphaInAnimation.addOnFinishListener {
                     mImageAnimators[index] = null
                 }

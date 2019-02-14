@@ -2,6 +2,7 @@ package com.kyledahlin.highlighttabbar
 
 import android.content.Context
 import android.graphics.*
+import android.os.Build
 import android.util.AttributeSet
 import android.util.Log
 import android.widget.FrameLayout
@@ -33,16 +34,13 @@ internal class CircleContainer @JvmOverloads constructor(
     init {
         mPaint.style = Paint.Style.FILL_AND_STROKE
         background = resources.getDrawable(R.drawable.nav_bar_circle_background)
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            elevation = 6f
+        }
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         mRect = RectF(0f, 0f, width.toFloat(), height.toFloat())
     }
-
-//    override fun onDraw(canvas: Canvas) {
-//        super.onDraw(canvas)
-//        Log.d("CircleContainer", "onDraw")
-//        canvas.drawArc(mRect, 270f, 360f, true, mPaint)
-//    }
 }
