@@ -1,14 +1,13 @@
-package com.kyledahlin.highlighttabbar
+package com.kyledahlin.animatednavbar
 
 import android.content.Context
-import android.graphics.*
+import android.graphics.Paint
+import android.graphics.RectF
 import android.os.Build
 import android.util.AttributeSet
-import android.util.Log
-import android.widget.FrameLayout
 import android.widget.ImageView
 
-internal class CircleContainer @JvmOverloads constructor(
+internal class CircleImageViewContainer @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : ImageView(context, attrs, defStyleAttr) {
 
@@ -34,7 +33,7 @@ internal class CircleContainer @JvmOverloads constructor(
     init {
         mPaint.style = Paint.Style.FILL_AND_STROKE
         background = resources.getDrawable(R.drawable.nav_bar_circle_background)
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             elevation = 6f
         }
     }

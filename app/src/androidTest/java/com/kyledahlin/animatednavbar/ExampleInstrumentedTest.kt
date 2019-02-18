@@ -1,4 +1,4 @@
-package com.kyledahlin.highlighttabbar
+package com.kyledahlin.animatednavbar
 
 import androidx.test.InstrumentationRegistry
 import androidx.test.runner.AndroidJUnit4

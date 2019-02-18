@@ -1,4 +1,4 @@
-package com.kyledahlin.highlighttabbar;
+package com.kyledahlin.animatednavbar;
 
 import org.junit.Test;
 
