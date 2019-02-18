@@ -25,7 +25,8 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:navBarColor="@android:color/white">
+            app:navBarColor="@android:color/white"
+            app:navBarMenu="@xml/nav_bar_items">
 
     </com.kyledahlin.animatednavbar.AnimatedBottomNavigationBar>
 

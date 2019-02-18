@@ -16,6 +16,9 @@ import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
 import androidx.constraintlayout.widget.ConstraintLayout
+import loadNavBarItems
+import NavBarItem
+import java.lang.IllegalArgumentException
 import androidx.constraintlayout.widget.ConstraintSet as CS
 
 typealias OnIndexSelectedListener = (Int) -> Unit
@@ -50,6 +53,7 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
     private var mAnimator: ValueAnimator? = null
     private val mImageViews = mutableListOf<ImageView>()
     private val mImageAnimators = mutableListOf<AnimatorContainer?>()
+    private val mNavBarItems: List<NavBarItem>
     private val mAlphaDuration: Long
 
     private var mCircleAnimator: AnimatorContainer? = null
@@ -76,6 +80,12 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
                     resources.getColor(android.R.color.white)
                 )
                 //TODO: find the default nav bar color
+                val menuResource = getResourceId(
+                    R.styleable.AnimatedBottomNavigationBar_navBarMenu, -1)
+                if(menuResource == -1) {
+                    throw IllegalArgumentException("No menu based into AnimatedNavBar")
+                }
+                mNavBarItems = loadNavBarItems(context, menuResource)
             } finally {
                 recycle()
             }
@@ -89,6 +99,7 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
                 curveRadius - 24.toPx() / 2,
                 curveRadius - 24.toPx() / 2
             )
+            setImageResource(mNavBarItems[mSelectedIndex].selectedDrawableId)
         }
         addView(mCircleContainer)
 
@@ -98,18 +109,9 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
         }
         addView(mBackground)
 
-        //TODO: pull this from xml
-        val drawableToIds = listOf(
-            Pair(R.drawable.android_robot, 1),
-            Pair(R.drawable.android_robot, 2),
-            Pair(R.drawable.android_robot, 3),
-            Pair(R.drawable.android_robot, 4),
-            Pair(R.drawable.android_robot, 5)
-        )
-
-        drawableToIds.forEachIndexed { index, pair ->
+        mNavBarItems.forEachIndexed { index, navBarItem ->
             val imageView = ImageView(context).apply {
-                setImageResource(pair.first)
+                setImageResource(navBarItem.unselectedDrawableId)
                 setOnClickListener {
                     onNavigate(index)
                 }
@@ -156,9 +158,9 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
         val oldSelectedIndex = mSelectedIndex
         mSelectedIndex = index
         if (oldSelectedIndex != mSelectedIndex) {
-            startSlideAnimation(getCenterForIndex(mSelectedIndex))
+            startSlideAnimation(index, getCenterForIndex(mSelectedIndex))
         }
-        mIndexSelectedListener?.invoke(index)
+        mIndexSelectedListener?.invoke(mNavBarItems[index].androidId)
         return true
     }
 
@@ -181,10 +183,14 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
             imageChild.setPadding(12.toPx(), 8.toPx(), 12.toPx(), 8.toPx())
         }
         mBackground.calculatePath()
+        val drawable = mCircleContainer.drawable
+        if(drawable is AnimatedVectorDrawable) {
+            drawable.start()
+        }
     }
 
     //Animate only the values that change in the background path (i.e. the cutout from the top of the background)
-    private fun startSlideAnimation(targetCenter: Float) {
+    private fun startSlideAnimation(index: Int, targetCenter: Float) {
         mAnimator?.cancel()
         mAnimator = ValueAnimator.ofFloat(mItemCenter, targetCenter)
         mAnimator?.duration = ANIMATION_DURATION
@@ -196,7 +202,7 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
             params.marginStart = (mItemCenter - mCircleContainer.width / 2).toInt()
             mCircleContainer.layoutParams = params
             if (itemCenterCollidesWith(mImageViews[mSelectedIndex])) {
-                animateCircleBack()
+                animateCircleBack(index)
             }
             mBackground.calculatePath()
             applyAlphaAnimators()
@@ -219,7 +225,7 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
     }
 
     //animate the circle that shows the currently selected item from the nav bar
-    private fun animateCircleBack() {
+    private fun animateCircleBack(index: Int) {
         if (mCircleAnimator == null || mCircleAnimator is CircleOutAnimator) {
             mCircleAnimator?.getAnimator()?.cancel()
             val newCircleAnimator = ValueAnimator.ofFloat(mCircleContainer.y, 0f)
@@ -232,7 +238,7 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
             }
             mCircleAnimator = CircleInAnimator(newCircleAnimator)
             mCircleAnimator?.getAnimator()?.start()
-            mCircleContainer.setImageResource(R.drawable.avd_anim)
+            mCircleContainer.setImageResource(mNavBarItems[index].selectedDrawableId)
             val drawable = mCircleContainer.drawable
             if (drawable is AnimatedVectorDrawable) {
                 drawable.start()

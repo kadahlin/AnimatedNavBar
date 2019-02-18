@@ -2,7 +2,6 @@
 <resources>
     <declare-styleable name="AnimatedBottomNavigationBar">
         <attr name="navBarColor" format="color" />
-        <attr name="selectedItemColor" format="color" />
         <attr name="navBarMenu" format="reference" />
     </declare-styleable>
 </resources>

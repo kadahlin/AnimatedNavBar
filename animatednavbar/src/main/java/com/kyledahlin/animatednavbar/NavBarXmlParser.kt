@@ -1,63 +1,69 @@
-//package com.kyledahlin.highlighttabbar
-//
-//import android.content.res.XmlResourceParser
-//import android.util.AttributeSet
-//import org.xmlpull.v1.XmlPullParser
-//
-//private const val XML_MENU = "menu"
-//private const val XML_ITEM = "item"
-//
-//
-//fun getDrawableIdsToAndroidIds(parser: XmlResourceParser, attributeSet: AttributeSet): List<Pair<Int, Int>> {
-//    var reachedEndOfMenu = false
-//    var eventType = parser.eventType
-//    var tagName: String
-//    var lookingForEndOfUnknownTag = false
-//    var unknownTagName: String? = null
-//
-//    while (!reachedEndOfMenu) {
-//        when (eventType) {
-//            XmlPullParser.START_TAG -> {
-//                if (lookingForEndOfUnknownTag) {
-//                    //break
-//                }
-//                tagName = parser.name
-//                when (tagName) {
-//                    XML_ITEM -> menuState.readItem(attrs)
-//                    XML_MENU -> {
-//                        // A menu start tag denotes a submenu for an item
-//                        val subMenu = menuState.addSubMenuItem()
-//                        registerMenu(subMenu, attrs)
-//                        // Parse the submenu into returned SubMenu
-//                        parseMenu(parser, attrs, subMenu)
-//                    }
-//                    else -> {
-//                        lookingForEndOfUnknownTag = true
-//                        unknownTagName = tagName
-//                    }
-//                }
-//            }
-//            XmlPullParser.END_TAG -> {
-//                tagName = parser.name
-//                if (lookingForEndOfUnknownTag && tagName == unknownTagName) {
-//                    lookingForEndOfUnknownTag = false
-//                    unknownTagName = null
-//                } else if (tagName == XML_ITEM) {
-//                    // Add the item if it hasn't been added (if the item was
-//                    // a submenu, it would have been added already)
-//                    if (!menuState.hasAddedItem()) {
-//                        if (menuState.itemActionProvider != null && menuState.itemActionProvider.hasSubMenu()) {
-//                            registerMenu(menuState.addSubMenuItem(), attrs)
-//                        } else {
-//                            registerMenu(menuState.addItem(), attrs)
-//                        }
-//                    }
-//                } else if (tagName == XML_MENU) {
-//                    reachedEndOfMenu = true
-//                }
-//            }
-//            XmlPullParser.END_DOCUMENT -> throw RuntimeException("Unexpected end of document")
-//        }
-//        eventType = parser.next()
-//    }
-//}
+import android.content.Context
+import android.util.AttributeSet
+import android.util.Log
+import org.xmlpull.v1.XmlPullParser
+
+private const val NAV_BAR_ITEM = "navbaritem"
+private const val ICON = "icon"
+private const val ANIMATED_ICON = "animated_icon"
+private const val ID = "id"
+
+internal fun loadNavBarItems(context: Context, xmlFileResId: Int): List<NavBarItem> {
+    val parser = context.resources.getXml(xmlFileResId)
+    val items = mutableListOf<NavBarItem>()
+
+    var token: Int = parser.next()
+    while (token != XmlPullParser.END_DOCUMENT) {
+        if (token == XmlPullParser.START_TAG) {
+            if (parser.name == NAV_BAR_ITEM) {
+                items.add(NavBarItem.fromAttributeSet(parser))
+            }
+        }
+        token = parser.next()
+    }
+
+    return items
+}
+
+internal class NavBarItem(
+    val androidId: Int,
+    val unselectedDrawableId: Int,
+    val selectedDrawableId: Int
+) {
+    companion object {
+
+        fun fromAttributeSet(attrs: AttributeSet): NavBarItem {
+            var id = -1
+            var icon = -1
+            var animatedIcon = -1
+
+            for(index in 0 until attrs.attributeCount) {
+                val attributeName = attrs.getAttributeName(index)
+                when(attributeName) {
+                    ICON -> {
+                        icon = attrs.getAttributeResourceValue(index, -1)
+                    }
+                    ANIMATED_ICON -> {
+                        animatedIcon = attrs.getAttributeResourceValue(index, -1)
+                    }
+                    ID -> {
+                        id = attrs.getAttributeResourceValue(index, -1)
+                    }
+                    else -> {
+                        Log.w("AnimatedNavBar", "invalid attribute name, $attributeName")
+                    }
+                }
+            }
+            if(id == -1) {
+                Log.d("REMOVE", "missing id for nav bar item")
+            }
+            if(icon == -1) {
+                Log.d("REMOVE", "missing icon for nav bar item")
+            }
+            if(animatedIcon == -1) {
+                Log.d("REMOVE", "missing animatedIcon for nav bar item")
+            }
+            return NavBarItem(id, icon, animatedIcon)
+        }
+    }
+}
