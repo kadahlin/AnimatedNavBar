@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<NavBarItems xmlns:android="http://schemas.android.com/apk/res/android">
+<navbaritems xmlns:android="http://schemas.android.com/apk/res/android">
 
     <navbaritem
             icon="@drawable/android_robot"
@@ -26,4 +26,4 @@
             animated_icon="@drawable/avd_anim"
             android:id="@+id/nav_bar_five"/>
 
-</NavBarItems>
+</navbaritems>

@@ -1,6 +1,5 @@
 plugins {
     id("com.android.library")
-    id("kotlin-android-extensions")
     id("kotlin-android")
 }
 
@@ -27,6 +26,9 @@ android {
         }
     }
 
+    sourceSets {
+        getByName("main").java.srcDirs("src/main/kotlin/")
+    }
 }
 
 dependencies {

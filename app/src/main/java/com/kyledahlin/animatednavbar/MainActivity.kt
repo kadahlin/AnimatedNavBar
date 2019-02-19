@@ -11,7 +11,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         index_text.text = "Current Item is one"
 
-        animated_nav_bar.setIndexSelectedListener { id ->
+        animated_nav_bar.setIdSelectedListener { id ->
             val logMessage = when(id) {
                 R.id.nav_bar_one -> "one"
                 R.id.nav_bar_two -> "two"

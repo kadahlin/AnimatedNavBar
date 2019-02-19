@@ -1,5 +1,7 @@
 package com.kyledahlin.animatednavbar
 
+import InvalidXmlException
+import NavBarItem
 import android.animation.Animator
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
@@ -17,29 +19,32 @@ import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
 import androidx.constraintlayout.widget.ConstraintLayout
 import loadNavBarItems
-import NavBarItem
-import java.lang.IllegalArgumentException
 import androidx.constraintlayout.widget.ConstraintSet as CS
 
-typealias OnIndexSelectedListener = (Int) -> Unit
+typealias OnIdSelectedListener = (Int) -> Unit
 
+/**
+ * An animated bottom navigational bar that follows material design guidelines.
+ */
 class AnimatedBottomNavigationBar @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
 
     companion object {
         private const val ANIMATION_DURATION = 600L
-        private const val MAX_ALPHA = .2f
+        private const val TOTAL_HEIGHT_DP = 78
+        private const val MATERIAL_NAV_BAR_HEIGHT_DP = 56
+        private const val ITEM_HORIZONTAL_PADDING_DP = 12
+        private const val ITEM_VERTICAL_PADDING_DP = 8
+        private const val MATERIAL_ICON_SIZE_DP = 24
+        private const val CURVE_RADIUS_DP = 30
+        private const val ELEVATION = 4f
     }
 
-    private class FloatPoint(var x: Float, var y: Float) {
-        fun set(x: Float, y: Float) {
-            this.x = x
-            this.y = y
-        }
-    }
-
-    private val curveRadius = 30.toPx()
+    private val itemHorizontalPaddingPixels = ITEM_HORIZONTAL_PADDING_DP.toPx()
+    private val itemVerticalPaddingPixels = ITEM_VERTICAL_PADDING_DP.toPx()
+    private val materialIconSizePixels = MATERIAL_ICON_SIZE_DP.toPx()
+    private val curveRadius = CURVE_RADIUS_DP.toPx()
 
     private val mPath: Path = Path()
     private val mPaint: Paint = Paint()
@@ -50,24 +55,25 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
     private var mItemCenter = 0f //this is x coordinate at the center of the currently selected index
     private var mSelectedIndex = 0
 
-    private var mAnimator: ValueAnimator? = null
+    private var mCircleHorizontalAnimator: ValueAnimator? = null
+    private var mCircleVerticalAnimator: AnimatorContainer? = null
+
     private val mImageViews = mutableListOf<ImageView>()
     private val mImageAnimators = mutableListOf<AnimatorContainer?>()
     private val mNavBarItems: List<NavBarItem>
     private val mAlphaDuration: Long
 
-    private var mCircleAnimator: AnimatorContainer? = null
     private val mCircleContainer: CircleImageViewContainer   //the container that will hold the selected item image view
     private var mNavBarHeightGap = 0f   //the distance between the 0 y coordinate and the top of the nav bar background
 
-    private var mIndexSelectedListener: OnIndexSelectedListener? = null
-
+    private var mIdSelectedListener: OnIdSelectedListener? = null
     private val mBackground: NavBarBackground
 
     init {
         mPaint.style = Paint.Style.FILL_AND_STROKE
         setBackgroundColor(Color.TRANSPARENT)
 
+        var colorInt = 0
         context.theme.obtainStyledAttributes(
             attrs,
             R.styleable.AnimatedBottomNavigationBar,
@@ -75,37 +81,46 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
         ).apply {
 
             try {
-                mPaint.color = getColor(
+                colorInt = getColor(
                     R.styleable.AnimatedBottomNavigationBar_navBarColor,
                     resources.getColor(android.R.color.white)
                 )
-                //TODO: find the default nav bar color
+                mPaint.color = colorInt
                 val menuResource = getResourceId(
-                    R.styleable.AnimatedBottomNavigationBar_navBarMenu, -1)
-                if(menuResource == -1) {
-                    throw IllegalArgumentException("No menu based into AnimatedNavBar")
+                    R.styleable.AnimatedBottomNavigationBar_navBarMenu, -1
+                )
+                if (menuResource == -1) {
+                    throw InvalidXmlException("No menu based into AnimatedNavBar")
                 }
                 mNavBarItems = loadNavBarItems(context, menuResource)
+                colorInt = getColor(
+                    R.styleable.AnimatedBottomNavigationBar_navBarSelectedColor,
+                    colorInt
+                )
             } finally {
                 recycle()
             }
         }
 
-        mCircleContainer = CircleImageViewContainer(mPaint.color, curveRadius, context).apply {
+        minimumHeight = TOTAL_HEIGHT_DP.toPx()
+        maxHeight = TOTAL_HEIGHT_DP.toPx()
+
+        mCircleContainer = CircleImageViewContainer(colorInt, context).apply {
             id = View.generateViewId()
             setPadding(
-                curveRadius - 24.toPx() / 2,
-                curveRadius - 24.toPx() / 2,
-                curveRadius - 24.toPx() / 2,
-                curveRadius - 24.toPx() / 2
+                curveRadius - materialIconSizePixels / 2,
+                curveRadius - materialIconSizePixels / 2,
+                curveRadius - materialIconSizePixels / 2,
+                curveRadius - materialIconSizePixels / 2
             )
             setImageResource(mNavBarItems[mSelectedIndex].selectedDrawableId)
+            elevation = ELEVATION
         }
         addView(mCircleContainer)
 
         mBackground = NavBarBackground(context, attrs, defStyleAttr).apply {
             id = View.generateViewId()
-            elevation = 6f
+            elevation = ELEVATION
         }
         addView(mBackground)
 
@@ -116,18 +131,49 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
                     onNavigate(index)
                 }
                 id = View.generateViewId()
-                alpha = if (index == mSelectedIndex) 0f else MAX_ALPHA
-                elevation = 6f
+                alpha = if (index == mSelectedIndex) 0f else 1f
+                elevation = ELEVATION
             }
             addView(imageView)
             mImageViews.add(imageView)
         }
-        mAlphaDuration = ANIMATION_DURATION / mImageViews.size / 20
+        mAlphaDuration =
+            ANIMATION_DURATION / mImageViews.size / 20 //seems to be the ideal animation divisor for a nice visual speed
         repeat(mImageViews.size) { mImageAnimators.add(null) }
     }
 
-    fun setIndexSelectedListener(onIndexSelectedListener: OnIndexSelectedListener) {
-        mIndexSelectedListener = onIndexSelectedListener
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        mWidth = w.toFloat()
+        mHeight = h.toFloat()
+        mNavBarHeightGap = mHeight - MATERIAL_NAV_BAR_HEIGHT_DP.toPx()
+        mItemCenter = getCenterForIndex(mSelectedIndex)
+        for (imageChild in mImageViews) {
+            val params = imageChild.layoutParams as ConstraintLayout.LayoutParams
+            params.width = materialIconSizePixels + itemHorizontalPaddingPixels * 2
+            params.height = materialIconSizePixels + itemVerticalPaddingPixels * 2
+            imageChild.layoutParams = params
+            imageChild.setPadding(
+                itemHorizontalPaddingPixels,
+                itemVerticalPaddingPixels,
+                itemHorizontalPaddingPixels,
+                itemVerticalPaddingPixels
+            )
+        }
+        mBackground.calculatePath()
+        val drawable = mCircleContainer.drawable
+        if (drawable is AnimatedVectorDrawable) {
+            drawable.start()
+        }
+    }
+
+    override fun dispatchDraw(canvas: Canvas?) {
+        applyConstraints()  //set the placement of the children before drawing them
+        super.dispatchDraw(canvas)
+    }
+
+    fun setIdSelectedListener(onIdSelectedListener: OnIdSelectedListener) {
+        mIdSelectedListener = onIdSelectedListener
     }
 
     private fun applyConstraints() {
@@ -160,7 +206,7 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
         if (oldSelectedIndex != mSelectedIndex) {
             startSlideAnimation(index, getCenterForIndex(mSelectedIndex))
         }
-        mIndexSelectedListener?.invoke(mNavBarItems[index].androidId)
+        mIdSelectedListener?.invoke(mNavBarItems[index].androidId)
         return true
     }
 
@@ -169,33 +215,13 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
         return (mWidth / mImageViews.size * index) + (mWidth / mImageViews.size / 2)
     }
 
-    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        super.onSizeChanged(w, h, oldw, oldh)
-        mWidth = w.toFloat()
-        mHeight = h.toFloat()
-        mNavBarHeightGap = mHeight - 56.toPx()
-        mItemCenter = getCenterForIndex(mSelectedIndex)
-        for (imageChild in mImageViews) {
-            val params = imageChild.layoutParams as ConstraintLayout.LayoutParams
-            params.width = 48.toPx()
-            params.height = 40.toPx()
-            imageChild.layoutParams = params
-            imageChild.setPadding(12.toPx(), 8.toPx(), 12.toPx(), 8.toPx())
-        }
-        mBackground.calculatePath()
-        val drawable = mCircleContainer.drawable
-        if(drawable is AnimatedVectorDrawable) {
-            drawable.start()
-        }
-    }
-
     //Animate only the values that change in the background path (i.e. the cutout from the top of the background)
     private fun startSlideAnimation(index: Int, targetCenter: Float) {
-        mAnimator?.cancel()
-        mAnimator = ValueAnimator.ofFloat(mItemCenter, targetCenter)
-        mAnimator?.duration = ANIMATION_DURATION
-        mAnimator?.interpolator = DecelerateInterpolator()
-        mAnimator?.addUpdateListener { animation ->
+        mCircleHorizontalAnimator?.cancel()
+        mCircleHorizontalAnimator = ValueAnimator.ofFloat(mItemCenter, targetCenter)
+        mCircleHorizontalAnimator?.duration = ANIMATION_DURATION
+        mCircleHorizontalAnimator?.interpolator = DecelerateInterpolator()
+        mCircleHorizontalAnimator?.addUpdateListener { animation ->
             val value = animation.animatedValue as Float
             mItemCenter = value
             val params = mCircleContainer.layoutParams as ConstraintLayout.LayoutParams
@@ -209,7 +235,7 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
             invalidate()
         }
 
-        mCircleAnimator?.getAnimator()?.cancel()
+        mCircleVerticalAnimator?.getAnimator()?.cancel()
         val newCircleAnimator = ValueAnimator.ofFloat(mCircleContainer.y, mHeight)
         newCircleAnimator.duration = ANIMATION_DURATION / 8
         newCircleAnimator.interpolator = AccelerateInterpolator()
@@ -218,16 +244,17 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
             params.topMargin = (it.animatedValue as Float).toInt()
             mCircleContainer.layoutParams = params
         }
-        mAnimator?.start()
-        mCircleAnimator = CircleOutAnimator(newCircleAnimator)
-        mCircleAnimator?.getAnimator()?.start()
+        mCircleHorizontalAnimator?.start()
+        mCircleVerticalAnimator = CircleOutAnimator(newCircleAnimator)
+        mCircleContainer.setImageResource(android.R.color.transparent)
+        mCircleVerticalAnimator?.getAnimator()?.start()
 
     }
 
     //animate the circle that shows the currently selected item from the nav bar
     private fun animateCircleBack(index: Int) {
-        if (mCircleAnimator == null || mCircleAnimator is CircleOutAnimator) {
-            mCircleAnimator?.getAnimator()?.cancel()
+        if (mCircleVerticalAnimator == null || mCircleVerticalAnimator is CircleOutAnimator) {
+            mCircleVerticalAnimator?.getAnimator()?.cancel()
             val newCircleAnimator = ValueAnimator.ofFloat(mCircleContainer.y, 0f)
             newCircleAnimator?.duration = ANIMATION_DURATION / 4
             newCircleAnimator.interpolator = DecelerateInterpolator()
@@ -236,8 +263,8 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
                 params.topMargin = (it.animatedValue as Float).toInt()
                 mCircleContainer.layoutParams = params
             }
-            mCircleAnimator = CircleInAnimator(newCircleAnimator)
-            mCircleAnimator?.getAnimator()?.start()
+            mCircleVerticalAnimator = CircleInAnimator(newCircleAnimator)
+            mCircleVerticalAnimator?.getAnimator()?.start()
             mCircleContainer.setImageResource(mNavBarItems[index].selectedDrawableId)
             val drawable = mCircleContainer.drawable
             if (drawable is AnimatedVectorDrawable) {
@@ -246,10 +273,12 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
         }
     }
 
+    //is the current center (X coordinate at the center of the "dip") colliding with the given view
     private fun itemCenterCollidesWith(view: View): Boolean {
-        return (mItemCenter < (view.x + view.width + 12.toPx() * 2)) && (mItemCenter > view.x - 12.toPx() * 2)
+        return (mItemCenter < (view.x + view.width + itemHorizontalPaddingPixels * 3)) && (mItemCenter > view.x - itemHorizontalPaddingPixels * 3)
     }
 
+    //apply any necessary alpha animators on the selectable icons
     private fun applyAlphaAnimators() {
         for ((index, imageView) in mImageViews.withIndex()) {
             if (itemCenterCollidesWith(imageView)) {
@@ -262,7 +291,7 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
                 }
             } else if (mImageAnimators[index] != null && mImageAnimators[index] is AlphaOutAnimator) {
                 mImageAnimators[index]?.getAnimator()?.cancel()
-                val alphaInAnimation = ObjectAnimator.ofFloat(imageView, "alpha", imageView.alpha, MAX_ALPHA)
+                val alphaInAnimation = ObjectAnimator.ofFloat(imageView, "alpha", imageView.alpha, 1f)
                 alphaInAnimation.duration = mAlphaDuration
                 alphaInAnimation.interpolator = DecelerateInterpolator()
                 alphaInAnimation.addOnFinishListener {
@@ -274,18 +303,13 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
         }
     }
 
-    override fun dispatchDraw(canvas: Canvas?) {
-        applyConstraints()  //set the placement of the children before drawing them
-        super.dispatchDraw(canvas)
-    }
-
     //Convert the given int DP amount to its equivalent pixels
     private fun Int.toPx(): Int {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, this.toFloat(), resources.displayMetrics).toInt()
     }
 
-    //Class that implements the "background" of the navbar. Having this as a separate view was the easiest way to have the circle image view
-    //animate behind the rest of the navbar
+    //Class that implements the "background" of the navbar. Having this as a separate view was the easiest way to have the selected item image view
+    //drawn behind the rest of the navbar
     private inner class NavBarBackground @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     ) : View(context, attrs, defStyleAttr) {
@@ -394,4 +418,10 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
         }
     }
 
+    private class FloatPoint(var x: Float, var y: Float) {
+        fun set(x: Float, y: Float) {
+            this.x = x
+            this.y = y
+        }
+    }
 }

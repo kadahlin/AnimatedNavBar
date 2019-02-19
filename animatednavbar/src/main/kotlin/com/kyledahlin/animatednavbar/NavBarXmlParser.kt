@@ -37,9 +37,9 @@ internal class NavBarItem(
             var icon = -1
             var animatedIcon = -1
 
-            for(index in 0 until attrs.attributeCount) {
+            for (index in 0 until attrs.attributeCount) {
                 val attributeName = attrs.getAttributeName(index)
-                when(attributeName) {
+                when (attributeName) {
                     ICON -> {
                         icon = attrs.getAttributeResourceValue(index, -1)
                     }
@@ -50,20 +50,22 @@ internal class NavBarItem(
                         id = attrs.getAttributeResourceValue(index, -1)
                     }
                     else -> {
-                        Log.w("AnimatedNavBar", "invalid attribute name, $attributeName")
+                        Log.d("AnimatedNavBar", "invalid attribute name, $attributeName")
                     }
                 }
             }
-            if(id == -1) {
-                Log.d("REMOVE", "missing id for nav bar item")
+            if (id == -1) {
+                throw InvalidXmlException("missing id for nav bar item")
             }
-            if(icon == -1) {
-                Log.d("REMOVE", "missing icon for nav bar item")
+            if (icon == -1) {
+                throw InvalidXmlException("missing icon for nav bar item")
             }
-            if(animatedIcon == -1) {
-                Log.d("REMOVE", "missing animatedIcon for nav bar item")
+            if (animatedIcon == -1) {
+                throw InvalidXmlException("missing animatedIcon for nav bar item")
             }
             return NavBarItem(id, icon, animatedIcon)
         }
     }
 }
+
+internal class InvalidXmlException(message: String) : Exception(message)
