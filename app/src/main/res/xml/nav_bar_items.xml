@@ -2,28 +2,28 @@
 <navbaritems xmlns:android="http://schemas.android.com/apk/res/android">
 
     <navbaritem
-            icon="@drawable/android_robot"
-            animated_icon="@drawable/avd_anim"
+            icon="@drawable/svg_one"
+            animated_icon="@drawable/anim_one_five"
             android:id="@+id/nav_bar_one"/>
 
     <navbaritem
-            icon="@drawable/android_robot"
-            animated_icon="@drawable/avd_anim"
+            icon="@drawable/svg_one"
+            animated_icon="@drawable/anim_two"
             android:id="@+id/nav_bar_two"/>
 
     <navbaritem
-            icon="@drawable/android_robot"
-            animated_icon="@drawable/avd_anim"
+            icon="@drawable/svg_one"
+            animated_icon="@drawable/anim_three"
             android:id="@+id/nav_bar_three"/>
 
     <navbaritem
-            icon="@drawable/android_robot"
-            animated_icon="@drawable/avd_anim"
+            icon="@drawable/svg_one"
+            animated_icon="@drawable/anim_four"
             android:id="@+id/nav_bar_four"/>
 
     <navbaritem
-            icon="@drawable/android_robot"
-            animated_icon="@drawable/avd_anim"
+            icon="@drawable/svg_one"
+            animated_icon="@drawable/anim_one_five"
             android:id="@+id/nav_bar_five"/>
 
 </navbaritems>

@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        index_text.text = "Current Item is one"
+        index_text.text = "Current item is one"
 
         animated_nav_bar.setIdSelectedListener { id ->
             val logMessage = when (id) {
@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_bar_five -> "five"
                 else -> "unknown"
             }
-            index_text.text = "Current Item is $logMessage"
+            index_text.text = "Selected item was $logMessage"
         }
     }
 }

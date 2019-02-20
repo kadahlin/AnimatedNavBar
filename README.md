@@ -1,5 +1,7 @@
 # Animated Bottom Navigation Bar
 
+![](sample.gif)
+
 An animated version of a bottom navigational bar that follows material design guidelines. Icons / colors are customizable 
 to fit your app's specific theme. [AnimatedVectorDrawable][1]'s are supported for animating the selected icon. 
 
