@@ -1,4 +1,4 @@
-package com.kyledahlin.animatednavbar
+package com.kyledahlin.sample
 
 import androidx.test.InstrumentationRegistry
 import androidx.test.runner.AndroidJUnit4

@@ -13,10 +13,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  */
-package com.kyledahlin.animatednavbar
+package com.kyledahlin.sample
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -27,7 +27,7 @@ class MainActivity : AppCompatActivity() {
         index_text.text = "Current Item is one"
 
         animated_nav_bar.setIdSelectedListener { id ->
-            val logMessage = when(id) {
+            val logMessage = when (id) {
                 R.id.nav_bar_one -> "one"
                 R.id.nav_bar_two -> "two"
                 R.id.nav_bar_three -> "three"

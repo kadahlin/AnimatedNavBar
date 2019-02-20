@@ -21,7 +21,8 @@ implementation("com.kyledahlin:animatednavbar:1.0.0")
 
 **Create a menu xml resource**
 
-Under src/main/res/xml create a new xml resource file to hold your nav bar menu. A max of 6 items are supported
+Under src/main/res/xml create a new xml resource file to hold your nav bar menu. 3-5 items are recommended as per Material guidelines,
+ with a minimum of 2 and a maximum of 6 supported.
 
 - nav_bar_menu.xml
 ```xml

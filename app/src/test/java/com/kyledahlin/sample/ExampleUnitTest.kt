@@ -1,4 +1,4 @@
-package com.kyledahlin.animatednavbar
+package com.kyledahlin.sample
 
 import org.junit.Test
 
