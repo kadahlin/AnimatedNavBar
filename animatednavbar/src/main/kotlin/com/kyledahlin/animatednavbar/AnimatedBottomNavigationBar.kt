@@ -103,7 +103,7 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
                     R.styleable.AnimatedBottomNavigationBar_navBarMenu, -1
                 )
                 if (menuResource == -1) {
-                    throw InvalidXmlException("No menu based into AnimatedNavBar")
+                    throw InvalidXmlException("No menu resource given to AnimatedNavBar")
                 }
                 mNavBarItems = loadNavBarItems(context, menuResource)
                 if(mNavBarItems.size < 2 || mNavBarItems.size > 6) {

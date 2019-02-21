@@ -2,6 +2,7 @@ plugins {
     id("com.android.library")
     id("kotlin-android")
     id("maven-publish")
+    id("com.jfrog.bintray")
 }
 
 android {
@@ -11,7 +12,7 @@ android {
         minSdkVersion(21)
         targetSdkVersion(28)
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "android.support.test.runner.AndroidJUnitRunner"
     }
@@ -37,54 +38,55 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:1.1.3")
 }
 
-publishing {
-    publications {
-        create<MavenPublication>("libPublish") {
-            groupId = "com.kyledahlin"
-            artifactId = "animatednavbar"
-            version = "1.0.0"
-            artifact("$buildDir/outputs/aar/animatednavbar-release.aar")
-
-            pom {
-                licenses {
-                    license {
-                        name.set("The Apache License, Version 2.0")
-                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                    }
-                }
-                withXml {
-                    val dependenciesNode = this.asNode().appendNode("dependencies")
-                    try {
-                        val deps = project.configurations.getByName("implementation").allDependencies
-                        deps.forEach { dep ->
-                            if (dep.group.isNullOrEmpty() || dep.name.isEmpty())
-                                return@forEach
-
-                            val dependencyNode = dependenciesNode.appendNode("dependency").apply {
-                                appendNode("groupId", dep.group)
-                                appendNode("artifactId", dep.name)
-                                appendNode("version", dep.version)
-                                appendNode("scope", "compile")
-                            }
-
-                            if (dep is ModuleDependency) {
-                                if (!dep.isTransitive) {
-                                    val exclusionNode = dependencyNode.appendNode("exclusions").appendNode("exclusion")
-                                    exclusionNode.appendNode("groupId", "*")
-                                    exclusionNode.appendNode("artifactId", "*")
-                                } else if (dep.excludeRules.isNotEmpty()) {
-                                    val exclusionNode = dependencyNode.appendNode("exclusions").appendNode("exclusion")
-                                    dep.excludeRules.forEach { rule ->
-                                        exclusionNode.appendNode("groupId", rule.group)
-                                        exclusionNode.appendNode("artifactId", rule.module)
-                                    }
-                                }
-                            }
-                        }
-                    } catch (e: Exception) {
-                    }
-                }
+fun addDependencies(pom: org.gradle.api.publish.maven.MavenPom) = pom.withXml {
+    asNode().appendNode("dependencies").let { depNode ->
+        configurations.implementation.get().dependencies.forEach {
+            depNode.appendNode("dependency").apply {
+                appendNode("groupId", it.group)
+                appendNode("artifactId", it.name)
+                appendNode("version", it.version)
             }
         }
+    }
+}
+
+val publicationName = "animatednavbarLib"
+val description = "An animated bottom navigational bar that follows material design guidelines."
+val bintrayRepo = "maven"
+val bintrayName = "animatednavbar"
+
+val libraryName = "AnimatedBottomNavigationBar"
+val artifactName = "animatednavbar"
+val hubUrl = "https://github.com/kadahlin/AnimatedNavBar"
+version = "1.0.0"
+
+publishing {
+    publications.create(publicationName, MavenPublication::class) {
+        artifactId = artifactName
+        groupId = "com.kyledahlin"
+        version = version
+        artifact("$buildDir/outputs/aar/animatednavbar-release.aar")
+        addDependencies(pom)
+    }
+}
+
+bintray {
+    user = project.findProperty("bintrayUser") as String?
+    key = project.findProperty("bintrayApiKey") as String?
+    publish = true
+    setPublications(publicationName)
+
+    pkg.apply {
+        repo = bintrayRepo
+        name = bintrayName
+        desc = description
+        vcsUrl = "$hubUrl.git"
+        websiteUrl = hubUrl
+        issueTrackerUrl = "$hubUrl/issues"
+        setLicenses("Apache-2.0")
+        setLabels("kotlin", "android")
+        dryRun = false
+        override = false
+        publicDownloadNumbers = true
     }
 }

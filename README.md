@@ -1,5 +1,5 @@
 # Animated Bottom Navigation Bar
-
+[![Download](https://api.bintray.com/packages/kadahlin/maven/animatednavbar/images/download.svg) ](https://bintray.com/kadahlin/maven/animatednavbar/_latestVersion)
 ![](sample.gif)
 
 An animated version of a bottom navigational bar that follows material design guidelines. Icons / colors are customizable 
