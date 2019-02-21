@@ -12,10 +12,10 @@ android:
     - platform-tools
     - build-tools-$BUILD_TOOLS_VERSION
     - android-$API_LEVEL
-
-before_script:
-  - mkdir -p "$ANDROID_HOME/licenses"
-  - cp ./google-licenses/* "$ANDROID_HOME/licenses/"
+  licenses:
+    - 'android-sdk-preview-license-52d11cd2'
+    - 'android-sdk-license-.+'
+    - 'google-gdk-license-.+'
 
 script:
   - ./gradlew build
