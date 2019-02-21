@@ -1,5 +1,6 @@
 # Animated Bottom Navigation Bar
 [![Download](https://api.bintray.com/packages/kadahlin/maven/animatednavbar/images/download.svg) ](https://bintray.com/kadahlin/maven/animatednavbar/_latestVersion)
+
 ![](sample.gif)
 
 An animated version of a bottom navigational bar that follows material design guidelines. Icons / colors are customizable 
@@ -7,11 +8,11 @@ to fit your app's specific theme. [AnimatedVectorDrawable][1]'s are supported fo
 
 ## How to use
 
-Start by adding the jitpack repository to your root build.gradle
+Start by adding the jcenter repository to your root build.gradle
 ```kotlin
     allprojects {
         repositories {
-            maven(url = "https://jitpack.io")
+            maven (url = "https://dl.bintray.com/kadahlin/maven")
         }
     }
 ```
