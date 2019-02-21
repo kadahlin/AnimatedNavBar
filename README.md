@@ -8,7 +8,7 @@ to fit your app's specific theme. [AnimatedVectorDrawable][1]'s are supported fo
 
 ## How to use
 
-Start by adding the jcenter repository to your root build.gradle
+Start by adding the bintray repository to your root build.gradle
 ```kotlin
     allprojects {
         repositories {
