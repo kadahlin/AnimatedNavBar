@@ -1,0 +1,21 @@
+language: android
+jdk: oraclejdk8
+
+env:
+  global:
+    - API_LEVEL=28
+    - BUILD_TOOLS_VERSION=28.0.3
+
+android:
+  components:
+    - tools
+    - platform-tools
+    - build-tools-$BUILD_TOOLS_VERSION
+    - android-$API_LEVEL
+
+before_script:
+  - mkdir -p "$ANDROID_HOME/licenses"
+  - cp ./google-licenses/* "$ANDROID_HOME/licenses/"
+
+script:
+  - ./gradlew build
