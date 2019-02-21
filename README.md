@@ -1,5 +1,6 @@
 # Animated Bottom Navigation Bar
 [![Download](https://api.bintray.com/packages/kadahlin/maven/animatednavbar/images/download.svg) ](https://bintray.com/kadahlin/maven/animatednavbar/_latestVersion)
+[![Build Status](https://travis-ci.org/kadahlin/AnimatedNavBar.svg?branch=master)](https://travis-ci.org/kadahlin/AnimatedNavBar)
 
 ![](sample.gif)
 
