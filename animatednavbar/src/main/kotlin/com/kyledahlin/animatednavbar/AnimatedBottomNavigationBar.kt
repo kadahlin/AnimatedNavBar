@@ -31,10 +31,14 @@ import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
 import androidx.constraintlayout.widget.ConstraintLayout
-import java.lang.IllegalStateException
 import androidx.constraintlayout.widget.ConstraintSet as CS
 
 typealias OnIdSelectedListener = (Int) -> Unit
+
+data class StateAnimator(
+    val animator: ValueAnimator,
+    val entering: Boolean
+)  //the boolean denotes if this animator is used for fading in/out or translating to / from the visible area
 
 /**
  * An animated bottom navigational bar that follows material design guidelines.
@@ -69,10 +73,10 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
     private var mSelectedIndex = 0
 
     private var mCircleHorizontalAnimator: ValueAnimator? = null
-    private var mCircleVerticalAnimator: AnimatorContainer? = null
+    private var mCircleVerticalAnimator: StateAnimator? = null
 
     private val mImageViews = mutableListOf<ImageView>()
-    private val mImageAnimators = mutableListOf<AnimatorContainer?>()
+    private val mImageAnimators = mutableListOf<StateAnimator?>()
     private val mNavBarItems: List<NavBarItem>
     private val mAlphaDuration: Long
 
@@ -106,7 +110,7 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
                     throw InvalidXmlException("No menu resource given to AnimatedNavBar")
                 }
                 mNavBarItems = loadNavBarItems(context, menuResource)
-                if(mNavBarItems.size < 2 || mNavBarItems.size > 6) {
+                if (mNavBarItems.size < 2 || mNavBarItems.size > 6) {
                     throw IllegalStateException("too many nav bar items for bottom navigation")
                 }
                 colorInt = getColor(
@@ -252,7 +256,7 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
             invalidate()
         }
 
-        mCircleVerticalAnimator?.getAnimator()?.cancel()
+        mCircleVerticalAnimator?.animator?.cancel()
         val newCircleAnimator = ValueAnimator.ofFloat(mCircleContainer.y, mHeight)
         newCircleAnimator.duration = ANIMATION_DURATION / 8
         newCircleAnimator.interpolator = AccelerateInterpolator()
@@ -263,16 +267,16 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
         }
         mCircleHorizontalAnimator?.start()
         mCircleVerticalAnimator =
-            CircleOutAnimator(newCircleAnimator)
+            StateAnimator(newCircleAnimator, false)
         mCircleContainer.setImageResource(android.R.color.transparent)
-        mCircleVerticalAnimator?.getAnimator()?.start()
+        mCircleVerticalAnimator?.animator?.start()
 
     }
 
     //animate the circle that shows the currently selected item from the nav bar
     private fun animateCircleBack(index: Int) {
-        if (mCircleVerticalAnimator == null || mCircleVerticalAnimator is CircleOutAnimator) {
-            mCircleVerticalAnimator?.getAnimator()?.cancel()
+        if (mCircleVerticalAnimator == null || !mCircleVerticalAnimator!!.entering) {
+            mCircleVerticalAnimator?.animator?.cancel()
             val newCircleAnimator = ValueAnimator.ofFloat(mCircleContainer.y, 0f)
             newCircleAnimator?.duration = ANIMATION_DURATION / 4
             newCircleAnimator.interpolator = DecelerateInterpolator()
@@ -282,8 +286,8 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
                 mCircleContainer.layoutParams = params
             }
             mCircleVerticalAnimator =
-                CircleInAnimator(newCircleAnimator)
-            mCircleVerticalAnimator?.getAnimator()?.start()
+                StateAnimator(newCircleAnimator, true)
+            mCircleVerticalAnimator?.animator?.start()
             mCircleContainer.setImageResource(mNavBarItems[index].selectedDrawableId)
             val drawable = mCircleContainer.drawable
             if (drawable is AnimatedVectorDrawable) {
@@ -307,10 +311,10 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
                     alphaOutAnimation.duration = mAlphaDuration
                     alphaOutAnimation.start()
                     mImageAnimators[index] =
-                        AlphaOutAnimator(alphaOutAnimation)
+                        StateAnimator(alphaOutAnimation, false)
                 }
-            } else if (mImageAnimators[index] != null && mImageAnimators[index] is AlphaOutAnimator) {
-                mImageAnimators[index]?.getAnimator()?.cancel()
+            } else if (mImageAnimators[index] != null && !mImageAnimators[index]!!.entering) {
+                mImageAnimators[index]?.animator?.cancel()
                 val alphaInAnimation = ObjectAnimator.ofFloat(imageView, "alpha", imageView.alpha, 1f)
                 alphaInAnimation.duration = mAlphaDuration
                 alphaInAnimation.interpolator = DecelerateInterpolator()
@@ -319,7 +323,7 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
                 }
                 alphaInAnimation.start()
                 mImageAnimators[index] =
-                    AlphaInAnimator(alphaInAnimation)
+                    StateAnimator(alphaInAnimation, true)
             }
         }
     }
@@ -418,34 +422,6 @@ class AnimatedBottomNavigationBar @JvmOverloads constructor(
             override fun onAnimationStart(animation: Animator?) {
             }
         })
-    }
-
-    private interface AnimatorContainer {
-        fun getAnimator(): ValueAnimator
-    }
-
-    private class AlphaInAnimator(val objectAnimator: ValueAnimator) :
-        AnimatorContainer {
-        override fun getAnimator() = objectAnimator
-    }
-
-    private class AlphaOutAnimator(val objectAnimator: ValueAnimator) :
-        AnimatorContainer {
-        override fun getAnimator() = objectAnimator
-    }
-
-    private class CircleOutAnimator(val objectAnimator: ValueAnimator) :
-        AnimatorContainer {
-        override fun getAnimator(): ValueAnimator {
-            return objectAnimator
-        }
-    }
-
-    private class CircleInAnimator(val objectAnimator: ValueAnimator) :
-        AnimatorContainer {
-        override fun getAnimator(): ValueAnimator {
-            return objectAnimator
-        }
     }
 
     private class FloatPoint(var x: Float, var y: Float) {
