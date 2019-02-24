@@ -14,7 +14,7 @@ android {
         versionCode = 1
         versionName = "1.0.0"
 
-        testInstrumentationRunner = "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -25,17 +25,24 @@ android {
 
         getByName("debug") {
             isMinifyEnabled = false
+            isTestCoverageEnabled = true
         }
     }
 
     sourceSets {
         getByName("main").java.srcDirs("src/main/kotlin/")
+        getByName("androidTest").java.srcDirs("src/androidTest/kotlin")
     }
 }
 
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.21")
     implementation("androidx.constraintlayout:constraintlayout:1.1.3")
+
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.1.1")
+    androidTestImplementation("androidx.test:runner:1.1.1")
+    androidTestImplementation("androidx.test:rules:1.1.1")
+
 }
 
 fun addDependencies(pom: org.gradle.api.publish.maven.MavenPom) = pom.withXml {
