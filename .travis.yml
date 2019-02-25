@@ -12,6 +12,7 @@ android:
     - platform-tools
     - build-tools-$BUILD_TOOLS_VERSION
     - android-$API_LEVEL
+    - android-24
     - sys-img-armeabi-v7a-android-24
   licenses:
     - 'android-sdk-preview-license-52d11cd2'
