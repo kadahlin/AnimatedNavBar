@@ -19,8 +19,8 @@ android:
     - 'google-gdk-license-.+'
 
 before_script:
-  - echo no | android create avd --force -n emulatorApi24 -k "system-images;android-24;default;armeabi-v7a"
-  - $ANDROID_HOME/emulator/emulator -avd emulatorApi24 -no-window -no-skin -no-audio &
+  - echo no | android create avd --force -n test -t android-24 --abi armeabi-v7a -c 100M
+  - emulator -avd test -no-audio -no-window -no-skin &
   - android-wait-for-emulator
   - adb shell input keyevent 82 &
 
