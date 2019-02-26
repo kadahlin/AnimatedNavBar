@@ -27,7 +27,7 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.0.0-beta01")
     implementation("androidx.core:core-ktx:1.1.0-alpha04")
     implementation("androidx.constraintlayout:constraintlayout:1.1.3")
-    implementation(project(":animatednavbar"))
+    implementation("com.kyledahlin:animatednavbar:1.0.1")
 
     testImplementation("junit:junit:4.12")
 

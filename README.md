@@ -9,18 +9,18 @@ to fit your app's specific theme. [AnimatedVectorDrawable][1]'s are supported fo
 
 ## How to use
 
-Start by adding the bintray repository to your root build.gradle
+Start by adding the Jcenter repository to your root build.gradle
 ```kotlin
     allprojects {
         repositories {
-            maven (url = "https://dl.bintray.com/kadahlin/maven")
+            jcenter()
         }
     }
 ```
 Add the library dependency to your specific module's build.gradle file.
 
 ```kotlin
-implementation("com.kyledahlin:animatednavbar:1.0.0")
+implementation("com.kyledahlin:animatednavbar:1.0.1")
 ```
 
 **Create a menu xml resource**
@@ -68,7 +68,7 @@ Attributes to set:
 - *navBarColor*: the color that will be used for the layout of the AnimatedBottomNavigationBar. By default this is android.R.color.white
 - *navBarSelectedColor*: the background color of the animated selection circle. By default this will match the navBarColor
 
-A listener can be set on the AnimatedNavigationBar to receive updates when the user selects a new ID
+A listener can be set on the `AnimatedBottomNavigationBar` to receive updates when the user selects a new ID
 
 ```kotlin
 animated_nav_bar.setIdSelectedListener { id ->
