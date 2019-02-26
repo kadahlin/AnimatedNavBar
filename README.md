@@ -56,7 +56,7 @@ Attributes to set:
 The component can then be directly inserted into any layout xml file. 
 
 ```xml
-<com.kyledahlin.animatednavbar.AnimatedNavigationBar 
+<com.kyledahlin.animatednavbar.AnimatedBottomNavigationBar 
     android:id="@+id/animated_nav_bar"
     app:navBarColor="@color/yourNavBarColor"
     app:navBarMenu="@xml/nav_bar_menu"
