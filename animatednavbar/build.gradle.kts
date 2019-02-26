@@ -12,7 +12,7 @@ android {
         minSdkVersion(21)
         targetSdkVersion(28)
         versionCode = 1
-        versionName = "1.0.0"
+        versionName = "1.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -65,7 +65,7 @@ val bintrayName = "animatednavbar"
 val libraryName = "AnimatedBottomNavigationBar"
 val artifactName = "animatednavbar"
 val hubUrl = "https://github.com/kadahlin/AnimatedNavBar"
-version = "1.0.0"
+version = "1.0.1"
 
 publishing {
     publications.create(publicationName, MavenPublication::class) {
